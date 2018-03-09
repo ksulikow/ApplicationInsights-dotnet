@@ -146,7 +146,7 @@
                 //// Pick series based on dependency type (and success status):
                 string dependencyType = dependencyCall.Type;
 
-                if (dependencyType == null || dependencyType.Equals(string.Empty, StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrEmpty(dependencyType))
                 {
                     //// If dependency type is not set, we use "Unknown":
                     metricToTrack = dependencyFailed
