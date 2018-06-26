@@ -166,22 +166,41 @@
                     await this.client.SendAsync(request).ConfigureAwait(false);
                     return null;
                 }
-#else
-                WebRequest request = this.CreateRequest(this.EndpointAddress);
-                Task<HttpWebResponseWrapper> sendTask = this.GetResponseAsync(request);
-                Task timeoutTask = Task.Delay(this.Timeout).ContinueWith(task =>
+#else 
+                try
                 {
-                    if (!sendTask.IsCompleted)
+                    WebRequest request = this.CreateRequest(this.EndpointAddress);
+                    Task<HttpWebResponseWrapper> sendTask = this.GetResponseAsync(request);
+                    Task timeoutTask = Task.Delay(this.Timeout).ContinueWith(task =>
                     {
-                        request.Abort(); // And force the sendTask to throw WebException.
+                        if (!sendTask.IsCompleted)
+                        {
+                            request.Abort(); // And force the sendTask to throw WebException.
+                        }
+                    });
+
+                    Task completedTask = await Task.WhenAny(timeoutTask, sendTask).ConfigureAwait(false);
+
+                    // Observe any exceptions the sendTask may have thrown and propagate them to the caller.
+                    HttpWebResponseWrapper responseContent = await sendTask.ConfigureAwait(false);
+                    return responseContent;
+                }
+                catch (System.Security.SecurityException ex)
+                {
+                    if (ex.Message.Contains("Request for the permission of type 'System.Net.WebPermission"))
+                    {
+                        WebClient cl = new WebClient();
+                        cl.Headers[HttpRequestHeader.ContentType] = this.ContentType;
+                        cl.Headers[HttpRequestHeader.ContentEncoding] = this.ContentEncoding;
+                        await cl.UploadDataTaskAsync(this.EndpointAddress, this.Content).ConfigureAwait(false);
+                        return null;
                     }
-                });
-
-                Task completedTask = await Task.WhenAny(timeoutTask, sendTask).ConfigureAwait(false);
-
-                // Observe any exceptions the sendTask may have thrown and propagate them to the caller.
-                HttpWebResponseWrapper responseContent = await sendTask.ConfigureAwait(false);
-                return responseContent;
+                    else
+                    {
+                        throw;
+                    }
+                }
+               
 #endif
             }
             finally
@@ -333,7 +352,7 @@
             var request = WebRequest.Create(address);
 
             request.Method = "POST";
-
+           
             if (!string.IsNullOrEmpty(this.ContentType))
             {
                 request.ContentType = this.ContentType;
@@ -343,7 +362,7 @@
             {
                 request.Headers[ContentEncodingHeader] = this.ContentEncoding;
             }
-
+     
             return request;
         }
 

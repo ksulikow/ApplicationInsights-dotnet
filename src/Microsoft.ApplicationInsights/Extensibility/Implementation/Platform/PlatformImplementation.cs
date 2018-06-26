@@ -44,11 +44,13 @@ namespace Microsoft.ApplicationInsights.Extensibility.Implementation.Platform
         /// </summary>
         public string ReadConfigurationXml()
         {
-            // Config file should be in the base directory of the app domain
-            string configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApplicationInsights.config");
+            string configFilePath = string.Empty;
 
             try
             {
+                // Config file should be in the base directory of the app domain
+                configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApplicationInsights.config");
+
                 // Ensure config file actually exists
                 if (File.Exists(configFilePath))
                 {

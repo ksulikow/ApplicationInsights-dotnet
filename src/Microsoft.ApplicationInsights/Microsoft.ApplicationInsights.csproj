@@ -42,6 +42,10 @@
     <ContentTargetFolders>content</ContentTargetFolders>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
+    <OutputPath>C:\Users\kriss.devops\Source\Repos\bin\Debug\Microsoft.ApplicationInsights\net45\</OutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Desktop.Analyzers" Version="1.1.0">
       <PrivateAssets>All</PrivateAssets>
